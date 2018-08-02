@@ -7,9 +7,9 @@ Boku is a self-soverign identity implementation using counterfactual contract id
 This means it:
 
 + has "free" instantiation costs; onboarding users is "free",
-+ has guaranteed standard compliance via identity factories,
-+ universal upgradability via Aragon DAO governance,
-+ allows delegated and gasless using the Bouncer pattern,
++ has guaranteed standard compliance via identity factories and proxy-of-proxy upgradability,
++ universal upgradability via ZOS
++ delegated and gasless tx using the Bouncer pattern,
 + uses "verifiable claims" metaphor for SSI attestations, and
 + uses role-based access control for key management.
 
@@ -17,35 +17,22 @@ In our case, the counterfactual instantiation is simply a user signing any data;
 
 When using a single key, it's possible to authenticate multiple devices using a two-factor-confirm user experience ala WalletConnect.
 
-Once a user wants to evolve to caring for a fully self-sovereign identity contract (primarily to support multiple independent devices and keys beyond the single, origin key or to interact with non-ecosystem contracts), they can evolve their identity fully.
+Once a user wants to evolve to caring for a fully self-sovereign identity contract (primarily to support multiple independent devices and keys beyond the single, origin key or to interact with non-ecosystem contracts), they can deploy their identity fully.
 
 dot is totally in control of name grants, so we can store that shit off-chain and then commit it on-chain once they evolve.
 
 
 DIDs might look like
 
-```
-did:boku:0xIdentityManager
-```
+`did:xlnt-id:bytes` => `bytes.xlnt-id.eth` => `contract address`
 
-
-instead of on-chain counterfactual deployments, just use 820-style deploys; saves us from issuing comittments
-the future contract to be deployed is something like `Identity(address _for)`. We can precompute that bytecode and then
-create an arbitrary `v` and recover the associated address.
-
-1. Craft raw transaction using arbitrary account (that does not use EIP155) and constant gas price (100 gwei?)
-2. Use
-  - v = `27`
-  - r = `0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798`
-  - s = random number, linked off-chain to the user's single public key
-3. Recover sender of this transaction.
-4. Send The exact amount of ether necessary to this account and then submit the "signed" transaction to the network.
+if the ENS registry isn't 820-deployed, use deterministic address proxy contract to implement `resolve()` for the specific chain.
 
 ```
 
-[identity proxy factory]
+[CounterfactualIdentityManager]
     v (creates)
-[identity proxy] -> [identity implementation (proxy)] -> [shared identity implementation]
+[IdentityProxy] -> [IdentityImplementationProxy] -> [Identity]
 ^ n users             ^ single, constant                   ^ upgradable via governance
 ^ deterministic addr  ^ deterministic addr, upgradable
 ```
@@ -69,7 +56,7 @@ The process goes like:
 ---
 
 convert the logic in https://github.com/gnosis/safe-contracts/blob/master/contracts/DelegateConstructorProxy.sol
-to assembly so it can be appended to the default bytecode
+to assembly so it can be appended to the default bytecode as a constructor
 
 ```
 contract DelegateConstructorProxy {
@@ -92,14 +79,3 @@ contract DelegateConstructorProxy {
     }
 }
 ```
-
-
-Options:
-- Continue with this 820-style counterfactual instantiation
-    - constant address throughout identity lifecycle
-    - hard to sync between chains
-    - gwei variation means an old account may not actually be able to evolve correctly <- dealbreaker
-- Give up and use ENS resolver <- probably better
-    - `did:xlnt-id:bytes` => `bytes.xlnt-id.eth` => `contract address`
-    - if the ENS registry isn't 820-deployed, use deterministic address proxy contract to implement `resolve()` for the specific chain.
-
