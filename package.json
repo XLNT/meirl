@@ -1,0 +1,46 @@
+{
+  "name": "boku",
+  "version": "1.0.0",
+  "description": "Counterfactual Self-Sovereign Identity on ZeppelinOS with Bouncer",
+  "main": "index.js",
+  "scripts": {
+    "test": "buidler test",
+    "ganache": "ganache-cli --deterministic -l 8000000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XLNT/boku.git"
+  },
+  "keywords": [
+    "ethereum"
+  ],
+  "author": "Matt Condon <m@cond.in> (http://mat.tc)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/XLNT/boku/issues"
+  },
+  "homepage": "https://github.com/XLNT/boku#readme",
+  "devDependencies": {
+    "babel-eslint": "^8.2.6",
+    "buidler": "^0.1.4",
+    "eslint": "^5.2.0",
+    "eslint-config-airbnb": "^17.0.0",
+    "eslint-config-promise": "^1.2.6",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-babel": "^5.1.0",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-jsx-a11y": "^6.1.1",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "ganache-cli": "^6.1.6",
+    "openzeppelin-solidity": "^1.11.0",
+    "pify": "^3.0.0",
+    "rlp": "^2.1.0",
+    "web3": "^1.0.0-beta.35",
+    "zos-lib": "^1.3.0"
+  },
+  "dependencies": {
+    "eth-gas-reporter": "^0.1.10"
+  }
+}
