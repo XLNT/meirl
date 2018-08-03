@@ -12,13 +12,4 @@ module.exports = {
       network_id: '*', // eslint-disable-line camelcase
     },
   },
-  mocha: {
-    reporter: 'eth-gas-reporter',
-    reporterOptions: {
-      currency: 'USD',
-      gasPrice: 21,
-      outputFile: '/dev/null',
-      showTimeSpent: true,
-    },
-  },
 }

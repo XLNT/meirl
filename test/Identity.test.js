@@ -9,16 +9,15 @@ const proxyFor = (target, args) => `0x603160008181600b9039f360008080808036809280
 
 const contractAddress = (sender, nonce) => b.web3.utils.sha3(RLP.encode([ sender, nonce ])).substr(-40)
 
-const CustomAdminUpgradeabilityProxy = b.artifacts.require('CustomAdminUpgradeabilityProxy')
 const AdminUpgradeabilityProxy = b.artifacts.require('AdminUpgradeabilityProxy')
 const Greeter = b.artifacts.require('Greeter')
 
-const estimateDeploy = async (artifact, args, owner) => {
+const estimateDeploy = async (artifact, args, admin) => {
   const Contract = b.web3.eth.contract(artifact._json.abi)
   const data = Contract.new.getData(...args, { data: artifact._json.bytecode })
 
   return peth.estimateGas({
-    from: owner,
+    from: admin,
     data,
   })
 }
@@ -35,64 +34,78 @@ const deployContract = async (data, from) => {
   return receipt.contractAddress
 }
 
-contract('Identity', ([ _, owner, anyone ]) => {
+const getProxyFromChain = async (proxyFactories) => {
+  let prevAddr
+
+  for (let i = proxyFactories.length - 1; i > 0; i--) {
+    prevAddr = await proxyFactories[i](prevAddr)
+  }
+
+  return prevAddr
+}
+
+const shouldBeGreeter = async (addr, anyone) => {
+  const identityGreeter = Greeter.at(addr)
+  await identityGreeter.setGreet(GREETING, { from: anyone })
+
+  const gotGreeting = await identityGreeter.greet({ from: anyone })
+  assert.equal(gotGreeting, GREETING)
+}
+
+contract('Identity', ([ _, admin, anyone ]) => {
   beforeEach(async function () {
     this.greeter = await Greeter.new()
   })
 
-  it('Should return the right greeting', async function () {
-    await this.greeter.setGreet(GREETING)
-    const gotGreeting = await this.greeter.greet()
+  it('should proxy -> impl', async function () {
+    const finalAddress = await getProxyFromChain([
+      async (addr) => deployContract(proxyFor(addr), admin),
+      () => this.greeter.address,
+    ])
 
-    assert.equal(gotGreeting, GREETING)
+    await shouldBeGreeter(finalAddress, anyone)
   })
 
-  describe('AdminUpgradeabilityProxy', function () {
-    it('should work', async function () {
-      const identityImplementation = await AdminUpgradeabilityProxy.new(this.greeter.address, { from: owner })
+  it('should be able to proxy -> admin -> impl', async function () {
+    const finalAddress = await getProxyFromChain([
+      async (addr) => deployContract(proxyFor(addr), admin),
+      async (addr) => (await AdminUpgradeabilityProxy.new(addr, { from: admin })).address,
+      () => this.greeter.address,
+    ])
 
-      const identityGreeter = Greeter.at(identityImplementation.address)
-      await identityGreeter.setGreet(GREETING, { from: anyone })
-
-      const gotGreeting = await identityGreeter.greet({ from: anyone })
-      assert.equal(gotGreeting, GREETING)
-    })
-
-    it('should be able to proxy twice', async function () {
-      const firstProxy = await CustomAdminUpgradeabilityProxy.new(this.greeter.address, { from: owner })
-      const secondProxy = await AdminUpgradeabilityProxy.new(firstProxy.address, { from: owner })
-
-      const identityGreeter = Greeter.at(secondProxy.address)
-      await identityGreeter.setGreet(GREETING, { from: anyone })
-
-      const gotGreeting = await identityGreeter.greet({ from: anyone })
-      assert.equal(gotGreeting, GREETING)
-    })
+    await shouldBeGreeter(finalAddress, anyone)
   })
 
-  it('Identity', async function () {
-    const data = proxyFor(this.greeter.address)
+  it('should be able to admin -> proxy -> impl with proxy chain', async function () {
+    const finalAddress = await getProxyFromChain([
+      async (addr) => (await AdminUpgradeabilityProxy.new(addr, { from: admin })).address,
+      async (addr) => deployContract(proxyFor(addr), admin),
+      () => this.greeter.address,
+    ])
 
-    console.log('proxy gas:', await estimateContract(data, owner))
-    const contractAddress = await deployContract(data, owner)
-
-    const identityGreeter = Greeter.at(contractAddress)
-    await identityGreeter.setGreet(GREETING)
-
-    const gotGreeting = await identityGreeter.greet()
-    assert.equal(gotGreeting, GREETING)
+    await shouldBeGreeter(finalAddress, anyone)
   })
 
-  it('should be able to proxy through proxy', async function () {
-    const firstProxy = await AdminUpgradeabilityProxy.new(this.greeter.address, { from: owner })
+  it('should be able to proxy -> proxy -> impl', async function () {
+    const finalAddress = await getProxyFromChain([
+      async (addr) => deployContract(proxyFor(addr), admin),
+      async (addr) => deployContract(proxyFor(addr), admin),
+      () => this.greeter.address,
+    ])
 
-    const data = proxyFor(firstProxy.address)
-    const secondProxy = await deployContract(data, owner)
+    await shouldBeGreeter(finalAddress, anyone)
+  })
 
-    const identityGreeter = Greeter.at(secondProxy)
-    await identityGreeter.setGreet(GREETING, { from: anyone })
+  // this test is very confusing.
+  it('should be able to proxy hella times', async function () {
+    const finalAddress = await getProxyFromChain([
+      async (addr) => deployContract(proxyFor(addr), admin),
+      async (addr) => deployContract(proxyFor(addr), admin),
+      // async (addr) => (await AdminUpgradeabilityProxy.new(addr, { from: admin })).address,
+      async (addr) => deployContract(proxyFor(addr), admin),
+      () => this.greeter.address,
+    ])
 
-    const gotGreeting = await identityGreeter.greet({ from: anyone })
-    assert.equal(gotGreeting, GREETING)
+    await shouldBeGreeter(finalAddress, anyone)
   })
 })

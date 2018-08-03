@@ -39,8 +39,5 @@
     "rlp": "^2.1.0",
     "web3": "^1.0.0-beta.35",
     "zos-lib": "^1.3.0"
-  },
-  "dependencies": {
-    "eth-gas-reporter": "^0.1.10"
   }
 }
