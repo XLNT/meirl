@@ -21,7 +21,6 @@ Once a user wants to evolve to caring for a fully self-sovereign identity contra
 
 dot is totally in control of name grants, so we can store that shit off-chain and then commit it on-chain once they evolve.
 
-
 DIDs might look like
 
 `did:xlnt-id:bytes` => `bytes.xlnt-id.eth` => `contract address`
@@ -38,44 +37,18 @@ if the ENS registry isn't 820-deployed, use deterministic address proxy contract
 ```
 
 
-The process goes like:
-- user generated keypair on-device, and tells boku server their public key
-- we can calculate the eventual identity proxy address by
-  1. constructing the bytecode, which includes a constructor telling the contract about its first owner (the original keypair)
-    - should use 66785 gas and have a gasprice of :originalGasPrice with enough buffer to last
-  2. constructing the raw transaction
-  2. recovering the pseudo-signature as above
-  3. and then calculating the contract address using that sender
-    - `web3.utils.sha3(RLP.encode([ address, 0x0 ])).substr(-40)`
-  4. and begin counterfactually interacting with that identity
-  5. When the user wants to actually create their identity, we
-    1. send exactly :proxyGasCost * :originalGasPrice to :sender
-    2. submit the signed transaction to the network, consuming all of the ether in that account
+The [deterministic address process](https://github.com/ethereum/EIPs/issues/820) goes like:
+1. constructing the bytecode
+2. constructing the raw transaction using that bytecode and a high :originalGasPrice
+  - v = `27`
+  - r = `0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798`
+  - s = `:arbitrary` (`0x0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`)
+3. recovering the signer from pseudo-signature
+4. when we want to actually deploy the bytecode, send exactly :proxyGasCost * :originalGasPrice to :sender
+5. then submit the signed transaction to the network, consuming all of the ether in that account
 
+## @TODO
 
----
-
-convert the logic in https://github.com/gnosis/safe-contracts/blob/master/contracts/DelegateConstructorProxy.sol
-to assembly so it can be appended to the default bytecode as a constructor
-
-```
-contract DelegateConstructorProxy {
-
-    /// @dev Constructor function sets address of master copy contract.
-    /// @param _masterCopy Master copy address.
-    /// @param initializer Data used for a delegate call to initialize the contract.
-    constructor(address _masterCopy, bytes initializer)
-        public
-    {
-        if (initializer.length > 0) {
-            // solium-disable-next-line security/no-inline-assembly
-            assembly {
-                let success := delegatecall(sub(gas, 10000), _masterCopy, add(initializer, 0x20), mload(initializer), 0, 0)
-                let ptr := mload(0x40)
-                returndatacopy(ptr, 0, returndatasize)
-                if eq(success, 0) { revert(ptr, returndatasize) }
-            }
-        }
-    }
-}
-```
++ Replace counterfactual registry with ENS resolver
++ Deploy a [MultiSend](https://github.com/gnosis/safe-contracts/blob/master/contracts/libraries/MultiSend.sol)
++ Re-implement Bouncer for Identity (using KeyManager permissions)
