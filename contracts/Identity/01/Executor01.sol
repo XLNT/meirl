@@ -13,20 +13,20 @@ contract Executor01 {
 
   event ContractCreated(address _newContract);
 
-  function execute(
+  function _execute(
+    Types.Operation _operation,
     address _to,
     uint256 _value,
     bytes _data,
-    Types.Operation _operation,
-    uint256 _txGas
+    uint256 _gas
   )
     internal
     returns (bool success)
   {
     if (_operation == Types.Operation.CALL) {
-      success = executeCall(_to, _value, _data, _txGas);
+      success = executeCall(_to, _value, _data, _gas);
     } else if (_operation == Types.Operation.DELEGATECALL) {
-      success = executeDelegateCall(_to, _data, _txGas);
+      success = executeDelegateCall(_to, _data, _gas);
     } else if (_operation == Types.Operation.CREATE) {
       address newContract = executeCreate(_data);
       success = newContract != 0;
@@ -38,28 +38,28 @@ contract Executor01 {
     address _to,
     uint256 _value,
     bytes _data,
-    uint256 _txGas
+    uint256 _gas
   )
     internal
     returns (bool success)
   {
     // solium-disable-next-line security/no-inline-assembly
     assembly {
-      success := call(_txGas, _to, _value, add(_data, 0x20), mload(_data), 0, 0)
+      success := call(_gas, _to, _value, add(_data, 0x20), mload(_data), 0, 0)
     }
   }
 
   function executeDelegateCall(
     address _to,
     bytes _data,
-    uint256 _txGas
+    uint256 _gas
   )
     internal
     returns (bool success)
   {
     // solium-disable-next-line security/no-inline-assembly
     assembly {
-      success := delegatecall(_txGas, _to, add(_data, 0x20), mload(_data), 0, 0)
+      success := delegatecall(_gas, _to, add(_data, 0x20), mload(_data), 0, 0)
     }
   }
 

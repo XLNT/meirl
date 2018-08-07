@@ -51,4 +51,4 @@ The [deterministic address process](https://github.com/ethereum/EIPs/issues/820)
 
 + Replace counterfactual registry with ENS resolver
 + Deploy a [MultiSend](https://github.com/gnosis/safe-contracts/blob/master/contracts/libraries/MultiSend.sol)
-+ Re-implement Bouncer for Identity (using KeyManager permissions)
++ Re-implement Bouncer (public facing execute interface) for Identity (using KeyManager permissions)
