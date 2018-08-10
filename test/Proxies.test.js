@@ -1,31 +1,18 @@
-const RLP = require('rlp')
+const chai = require('chai')
 const b = require('buidler')
 const peth = b.pweb3.eth
-
-const GREETING = 'Hello, buidler!'
-
-// @TODO - if args provided, construct a delegate call to `target.initialize(...args)`
-const proxyFor = (target, args) => `0x603160008181600b9039f3600080808080368092803773${target.replace('0x', '')}5af43d828181803e808314602f57f35bfd`
-
-const contractAddress = (sender, nonce) => b.web3.utils.sha3(RLP.encode([ sender, nonce ])).substr(-40)
 
 const AdminUpgradeabilityProxy = b.artifacts.require('AdminUpgradeabilityProxy')
 const Greeter = b.artifacts.require('Greeter')
 
-const estimateDeploy = async (artifact, args, admin) => {
-  const Contract = b.web3.eth.contract(artifact._json.abi)
-  const data = Contract.new.getData(...args, { data: artifact._json.bytecode })
+chai
+  .use(require('chai-bignumber')(b.web3.BigNumber))
+  .should()
 
-  return peth.estimateGas({
-    from: admin,
-    data,
-  })
-}
-
-const estimateContract = async (data, from) => peth.estimateGas({
-  from,
-  data,
-})
+const GREETING = 'Hello, buidler!'
+// @TODO - if args provided, construct a delegate call to `target.initialize(...args)`
+// eslint-disable-next-line max-len
+const proxyFor = (target) => `0x603160008181600b9039f3600080808080368092803773${target.replace('0x', '')}5af43d828181803e808314602f57f35bfd`
 
 const deployContract = async (data, from) => {
   const res = await peth.sendTransaction({ from, data })
@@ -49,7 +36,7 @@ const shouldBeGreeter = async (addr, anyone) => {
   await identityGreeter.setGreet(GREETING, { from: anyone })
 
   const gotGreeting = await identityGreeter.greet({ from: anyone })
-  assert.equal(gotGreeting, GREETING)
+  gotGreeting.should.eq(GREETING)
 }
 
 contract('Identity', ([ _, admin, anyone ]) => {

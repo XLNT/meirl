@@ -1,15 +1,17 @@
 pragma solidity ^0.4.24;
 
-import "zos-lib/contracts/migrations/Migratable.sol";
-import "openzeppelin-solidity/contracts/access/BouncerUtils.sol";
 import "openzeppelin-solidity/contracts/ECRecovery.sol";
-import "openzeppelin-solidity/contracts/signatures/SignatureDelegate.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
+import "zos-lib/contracts/migrations/Migratable.sol";
+
+import "../../put-this-in-openzeppelin/BytesConverter.sol";
+import "../../put-this-in-openzeppelin/BouncerUtils.sol";
+import "../../put-this-in-openzeppelin/SignatureValidator.sol";
+import "../../put-this-in-openzeppelin/SignatureChecker.sol";
 
 import "../../util/Types.sol";
 import "../../interfaces/IIdentity.sol";
-import "../../interfaces/IActionValidator.sol";
 
 import "./Executor01.sol";
 import "./KeyManager01.sol";
@@ -18,9 +20,8 @@ import "./KeyManager01.sol";
  * @title IdentityImplementation01
  * @dev Implements identity by managing keys, executing functions, and validating signatures.
  */
-contract IdentityImplementation01 is IIdentity, SignatureDelegate, Migratable, KeyManager01, Executor01 {
-  using ECRecovery for bytes32;
-  using ECRecovery for bytes;
+contract IdentityImplementation01 is IIdentity, SignatureValidator, Migratable, KeyManager01, Executor01 {
+  using SignatureChecker for bytes;
 
   uint256 public nonce = 0;
 
@@ -28,8 +29,8 @@ contract IdentityImplementation01 is IIdentity, SignatureDelegate, Migratable, K
    * @dev Initialize Identity by initializing KeyManager
    */
   function initialize(bytes32 _keyId, Types.KeyType _keyType, bytes8 _purposes)
-    isInitializer("IdentityImplementation", "01")
     public
+    isInitializer("IdentityImplementation", "01")
   {
     KeyManager01.initialize(_keyId, _keyType, _purposes);
   }
@@ -68,7 +69,7 @@ contract IdentityImplementation01 is IIdentity, SignatureDelegate, Migratable, K
     require(gasleft() >= _gas, "Not enough gas to execute safe transaction");
     bool success = _execute(_op, _to, _value, _data, _gas);
     if (!success) {
-      emit ExecutionFailed(msg.data);
+      emit ExecutionFailed(BouncerUtils.getHashOfMessageData(address(this)));
     }
 
     // We transfer the calculated tx costs to the tx.origin to avoid sending it to intermediate contracts that have made calls
@@ -105,8 +106,8 @@ contract IdentityImplementation01 is IIdentity, SignatureDelegate, Migratable, K
     uint256 _value,
     bytes _data
   )
-    authorized
     public
+    authorized
     returns (uint256)
   {
     uint256 startGas = gasleft();
@@ -119,31 +120,34 @@ contract IdentityImplementation01 is IIdentity, SignatureDelegate, Migratable, K
 
   /**
    * @dev An action is valid iff the _sig of the _action is from an key with the ACTION purpose
-   * @param _action
+   * @param _action action that is signed
    * @param _sig [[address] [address] [...]] <address> <v> <r> <s>
    */
-  function isValidSignature(bytes _action, bytes _sig)
+  function isValidSignature(
+    bytes _action,
+    bytes _sig
+  )
+    external
     view
-    public
     returns (bool)
   {
-    (nextSigner, sig) = splitNextSignerAndSig(_sig);
+    (address nextSigner, bytes memory sig) = _sig.splitNextSignerAndSig();
     // permission
     bytes32 keyId = KeyUtils.idForAddress(nextSigner);
     bool hasPermission = keyHasPurpose(keyId, PURPOSE_ACTION);
 
     // validity
-    bool isValid = _action.isSignedBy(nextSigner, _sig);
+    bool isValid = _action.isSignedBy(nextSigner, sig);
 
     return hasPermission && isValid;
   }
 
   function isValidTicket(bytes _sig)
-    view
     internal
+    view
     returns (bool)
   {
     bytes32 msgDataHash = BouncerUtils.getHashOfMessageData(address(this));
-    return msgDataHash.isSignedBy(address(this), _sig);
+    return BytesConverter.toBytes(msgDataHash).isSignedBy(address(this), _sig);
   }
 }

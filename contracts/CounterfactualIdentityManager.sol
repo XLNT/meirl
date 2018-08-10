@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "openzeppelin-solidity/contracts/access/BouncerUtils.sol";
+import "./put-this-in-openzeppelin/BouncerUtils.sol";
 
 import "./util/Types.sol";
 import "./util/KeyUtils.sol";

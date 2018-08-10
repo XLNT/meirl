@@ -23,6 +23,8 @@
   "devDependencies": {
     "babel-eslint": "^8.2.6",
     "buidler": "^0.1.4",
+    "chai": "^4.1.2",
+    "chai-bignumber": "^2.0.2",
     "eslint": "^5.2.0",
     "eslint-config-airbnb": "^17.0.0",
     "eslint-config-promise": "^1.2.6",
