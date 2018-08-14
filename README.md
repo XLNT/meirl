@@ -6,20 +6,20 @@ Boku is a self-soverign identity implementation using counterfactual contract id
 
 This means it:
 
-+ has "free" instantiation costs; onboarding users is "free",
++ has "free" instantiation costs; onboarding users is completely off-chain using counterfactual instantiation
 + has guaranteed standard compliance via identity factories and proxy-of-proxy upgradability,
 + universal upgradability via ZOS
 + delegated and gasless tx using the Bouncer pattern,
 + uses "verifiable claims" metaphor for SSI attestations, and
-+ uses role-based access control for key management.
++ uses bitwise flag access control for key management.
 
 In our case, the counterfactual instantiation is simply a user signing any data; this proves that they have the ability to deploy a contract, in the future, based on that public key. Operating on-chain as that identity requires opt-in contracts ala MetaTx, but because they are
 
-When using a single key, it's possible to authenticate multiple devices using a two-factor-confirm user experience ala WalletConnect.
+When using a single key, it's possible to authenticate multiple devices using a two-factor-confirm user experience ala WalletConnect (but over a p2p network instead of a centralized bridge server).
 
-Once a user wants to evolve to caring for a fully self-sovereign identity contract (primarily to support multiple independent devices and keys beyond the single, origin key or to interact with non-ecosystem contracts), they can deploy their identity fully.
+Once a user wants to evolve to caring for a fully self-sovereign identity contract (primarily to support multiple independent devices and keys beyond the single, origin key or to interact with non-ecosystem contracts), they can deploy their identity fully, which costs 66k gas, or about 5 cents at 1gwei and $450 ETH.
 
-dot is totally in control of name grants, so we can store that shit off-chain and then commit it on-chain once they evolve.
+XLNT is totally in control of name grants, so we can store that shit off-chain and then commit it on-chain once they evolve.
 
 DIDs might look like
 
