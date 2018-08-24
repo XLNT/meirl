@@ -1,17 +1,16 @@
-const chai = require("chai");
 const b = require("buidler");
 const peth = b.pweb3.eth;
 
 const AdminUpgradeabilityProxy = b.artifacts.require(
-  "AdminUpgradeabilityProxy"
+  "AdminUpgradeabilityProxyMock"
 );
 const Greeter = b.artifacts.require("Greeter");
 
-chai.use(require("chai-bignumber")(b.web3.BigNumber)).should();
+require("chai")
+  .use(require("chai-bignumber")(b.web3.BigNumber))
+  .should();
 
 const GREETING = "Hello, buidler!";
-// @TODO - if args provided, construct a delegate call to `target.initialize(...args)`
-// eslint-disable-next-line max-len
 const proxyFor = target =>
   `0x603160008181600b9039f3600080808080368092803773${target.replace(
     "0x",
@@ -93,8 +92,9 @@ contract("Identity", ([_, admin, anyone]) => {
   it("should be able to proxy hella times", async function() {
     const finalAddress = await getProxyFromChain([
       async addr => deployContract(proxyFor(addr), admin),
+      async addr =>
+        (await AdminUpgradeabilityProxy.new(addr, { from: admin })).address,
       async addr => deployContract(proxyFor(addr), admin),
-      // async (addr) => (await AdminUpgradeabilityProxy.new(addr, { from: admin })).address,
       async addr => deployContract(proxyFor(addr), admin),
       () => this.greeter.address
     ]);

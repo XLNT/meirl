@@ -61,8 +61,8 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
     Types.KeyType _keyType,
     bytes8 _purposes
   )
-    isInitializer("KeyManager", "01")
     public
+    isInitializer("KeyManager", "01")
   {
     _addKey(_keyId, _keyType, _purposes);
   }
@@ -70,8 +70,8 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
   function getKey(
     bytes32 _keyId
   )
-    view
     public
+    view
     returns(
       bytes32 keyId,
       uint256 keyType,
@@ -91,8 +91,8 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
     bytes32 _keyId,
     bytes8 _purpose
   )
-    view
     public
+    view
     returns(bool)
   {
     Types.Key storage key = _getKeyById(_keyId);
@@ -106,8 +106,8 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
     Types.KeyType _keyType,
     bytes8 _purposes
   )
-    authorized
     public
+    authorized
     returns (
       bool success
     )
@@ -120,8 +120,8 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
   function removeKey(
     bytes32 _keyId
   )
-    authorized
     public
+    authorized
     returns (bool)
   {
     _removeKey(_keyId);
@@ -133,8 +133,8 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
   function _getKeyById(
     bytes32 _keyId
   )
-    view
     internal
+    view
     returns (Types.Key storage)
   {
     return keys[keyIndex[_keyId]];

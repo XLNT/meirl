@@ -4,8 +4,8 @@ pragma solidity ^0.4.24;
 library Flags {
 
   function makeFlagSet(bytes8[] _flags)
-    pure
     internal
+    pure
     returns (bytes8)
   {
     bytes8 flagSet;
@@ -18,24 +18,32 @@ library Flags {
   }
 
   function hasFlag(bytes8 _field, bytes8 _flag)
-    pure
     internal
+    pure
     returns  (bool)
   {
     return _flagIntersection(_field, _flag) != 0;
   }
 
   function addFlag(bytes8 _field, bytes8 _flag)
-    pure
     internal
+    pure
     returns (bytes8)
   {
     return _field | _flag;
   }
 
-  function _flagIntersection(bytes8 _field, bytes8 _flags)
-    pure
+  function removeFlag(bytes8 _field, bytes8 _flag)
     internal
+    pure
+    returns (bytes8)
+  {
+    return _field & ~_flag;
+  }
+
+  function _flagIntersection(bytes8 _field, bytes8 _flags)
+    internal
+    pure
     returns (bytes8)
   {
     return (_field & _flags);
