@@ -14,15 +14,15 @@
 // using `buidler run`.
 
 // These few lines can be omitted if you prefer to use `buidler run <path>`.
-const b = require('buidler')
+const b = require("buidler");
 
-async function main () {
-  await b.run('compile')
+async function main() {
+  await b.run("compile");
 
-  const Greeter = b.artifacts.require('Greeter')
+  const Greeter = b.artifacts.require("Greeter");
 
-  const greeter = await Greeter.new('Hello, buidler!')
-  console.log('Greeter address:', greeter.address)
+  const greeter = await Greeter.new("Hello, buidler!");
+  console.log("Greeter address:", greeter.address);
 }
 
-main().catch(console.error)
+main().catch(console.error);

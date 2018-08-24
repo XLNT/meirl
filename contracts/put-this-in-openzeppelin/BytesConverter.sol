@@ -3,7 +3,7 @@ pragma solidity ^0.4.24;
 
 library BytesConverter {
   function toBytes32(bytes memory _arg, uint256 _index)
-    public
+    internal
     pure
     returns (bytes32 res)
   {
@@ -22,9 +22,9 @@ library BytesConverter {
   }
 
   function toBytes(bytes32 _arg)
-    public
+    internal
     pure
-    returns (bytes)
+    returns (bytes memory)
   {
     return abi.encodePacked(_arg);
   }

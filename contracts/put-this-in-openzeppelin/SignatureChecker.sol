@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
 import "openzeppelin-solidity/contracts/ECRecovery.sol";
+import "openzeppelin-solidity/contracts/introspection/ERC165Checker.sol";
 
-import "./ERC165Checker.sol";
 import "./BytesConverter.sol";
 import "./ISignatureValidator.sol";
 
