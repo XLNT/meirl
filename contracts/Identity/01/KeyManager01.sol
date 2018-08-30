@@ -5,6 +5,7 @@ import "zos-lib/contracts/migrations/Migratable.sol";
 
 import "../../util/Types.sol";
 import "../../util/KeyUtils.sol";
+import "../../util/KeyRoles.sol";
 
 import "../../interfaces/IKeyManager.sol";
 
@@ -27,6 +28,8 @@ contract KeyManagerStorage01 {
    * @dev maps from (keyId) => index in `keys`
    */
   mapping(bytes32 => uint256) internal keyIndex;
+
+  uint256 internal constant MAX_PURPOSES = 256; // why not
 }
 
 
@@ -38,6 +41,12 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
   using KeyRoles for KeyRoles.Role;
   using SafeMath for uint256;
 
+  // this is overriden by GnosisSafe in Identity
+  modifier authorized()
+  {
+    _;
+  }
+
   /**
    * @dev initializes the contract, adding a single key with specific purposes
    * @param _keyId the id of the key
@@ -47,7 +56,7 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
   function initialize(
     bytes32 _keyId,
     Types.KeyType _keyType,
-    bytes8 _purposes
+    Types.Purpose[] memory _purposes
   )
     public
     isInitializer("KeyManager", "0")
@@ -73,7 +82,7 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
 
     return (
       key.id,
-      uint256(key.keyType)
+      key.keyType
     );
   }
 
@@ -99,7 +108,7 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
     external
     view
     returns (
-      bool keyCount
+      uint256 keyCount
     )
   {
     return keys.length;
@@ -119,15 +128,13 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
 
   // WRITE
 
-  /**
-   *
-   */
   function addKey(
     bytes32 _keyId,
     Types.KeyType _keyType,
     Types.Purpose[] _purposes
   )
     public
+    authorized
     returns (
       bool success
     )
@@ -138,7 +145,8 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
   function removeKey(
     bytes32 _keyId
   )
-    external
+    public
+    authorized
     returns (
       bool success
     )
@@ -161,7 +169,7 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
    * @param _keyId address
    * @param _purpose the purpose
    */
-  function addPurpose(bytes32 _keyId, Types.Purpose _purpose)
+  function _addPurpose(bytes32 _keyId, Types.Purpose _purpose)
     internal
   {
     roles[uint256(_purpose)].add(_keyId);
@@ -188,11 +196,11 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
     }
   }
 
-  function _removePurposes(bytes32 _keyId, Types.Purpose[] _purposes)
+  function _removeAllPurposes(bytes32 _keyId)
     internal
   {
-    for (uint256 i = 0; i < _purposes.length; i++) {
-      _removePurpose(_keyId, _purposes[i]);
+    for (uint256 i = 0; i < MAX_PURPOSES; i++) {
+      _removePurpose(_keyId, Types.Purpose(i));
     }
   }
 
@@ -209,7 +217,7 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
   function _addKey(
     bytes32 _keyId,
     Types.KeyType _keyType,
-    Types.Purpose[] _purposes
+    Types.Purpose[] memory _purposes
   )
     internal
     returns (bool)
@@ -259,7 +267,7 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
     keyIndex[lastKey.id] = currIndex;
     // ^ update keyIndex for the last key to be currIndex
 
-    _removePurposes(_keyId);
+    _removeAllPurposes(_keyId);
 
     return true;
   }

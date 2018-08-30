@@ -32,7 +32,7 @@ interface IKeyManager {
   function addKey(
     bytes32 _keyId,
     Types.KeyType _keyType,
-    Types.Purpose[] _purposes
+    uint256[] _purposes  // @TODO - why can't this be Types.Purpose[]?
   )
     external
     returns (
@@ -57,7 +57,7 @@ interface IKeyManagerEnumerable {
     external
     view
     returns (
-      bool keyCount
+      uint256 keyCount
     );
 
   function keyByIndex(
