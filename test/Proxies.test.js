@@ -1,13 +1,13 @@
-const b = require("buidler");
-const peth = b.pweb3.eth;
+const pify = require("pify");
+const peth = pify(web3.eth);
 
-const AdminUpgradeabilityProxy = b.artifacts.require(
+const AdminUpgradeabilityProxy = artifacts.require(
   "AdminUpgradeabilityProxyMock"
 );
-const Greeter = b.artifacts.require("Greeter");
+const Greeter = artifacts.require("Greeter");
 
 require("chai")
-  .use(require("chai-bignumber")(b.web3.BigNumber))
+  .use(require("chai-bignumber")(web3.BigNumber))
   .should();
 
 const GREETING = "Hello, buidler!";
