@@ -30,7 +30,7 @@
     "eslint-config-prettier": "^3.0.1",
     "eslint-plugin-prettier": "^2.6.2",
     "ganache-cli": "^6.1.6",
-    "gnosis-safe": "github:XLNT/safe-contracts#master",
+    "gnosis-safe": "github:gnosis/safe-contracts#development",
     "lodash": "^4.17.10",
     "number-to-bn": "^1.7.0",
     "openzeppelin-solidity": "https://github.com/openzeppelin/openzeppelin-solidity#master",
