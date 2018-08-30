@@ -4,7 +4,6 @@ import "./put-this-in-openzeppelin/BouncerUtils.sol";
 
 import "./util/Types.sol";
 import "./util/KeyUtils.sol";
-import "./util/Flags.sol";
 
 import "./interfaces/IIdentity.sol";
 import "./ProxyFactory.sol";
@@ -19,13 +18,9 @@ import "./ProxyFactory.sol";
 contract CounterfactualIdentityManager is ProxyFactory {
   event ContractCreated(bytes32 indexed cfAddress, address deployedAddress);
 
-
-  // see KeyManager for details
-  // @TODO - remove after https://github.com/ethereum/solidity/issues/1290
-  bytes8 constant public PURPOSE_GOD = bytes8(~0); // [...] 11111111 11111111 11111111 11111111
-
   /**
    * Map from counterfactual address to Ethereum address.
+   * replace with ENS
    */
   mapping(bytes32 => address) registry;
 
@@ -40,34 +35,22 @@ contract CounterfactualIdentityManager is ProxyFactory {
   // point to the proxy contract address or 0x0
   // @TODO(shrugs) - replace this with ENS
   function resolve(bytes32 _cfAddress)
-    view
     public
+    view
     returns (address)
   {
     return registry[_cfAddress];
   }
 
-  // convert my account from a single keypair to a contract identity
-  function deploy()
+  /**
+   * @dev Deploy an identity for an Ethereum EOA address.
+   * @notice Anyone can deploy anyone else's identity contract, but that doesn't really do anything bad
+   * because then you just paid the gas for them, so you're good to go.
+   */
+  function deploy(address _origAddress)
     public
   {
-    _deploy(msg.sender);
-  }
 
-  // this is the only valid use-case of delegate-specific function calls
-  // outside of in-ecosystem features
-  // all other delegated calls should be abstracted to the identity contract
-  // notice: the _sig parameter is implicitely required by BouncerUtils#signerOfMessageData
-  function deployFor(address _origAddress, bytes)
-    public
-  {
-    // @TODO - should this be
-    // _delegate.isValidSignature(BouncerUtils.getMessageData(), _sig)
-    // this contract is the delegate
-    // and implements isValidSignature by checking that the signer of the message is the _origAddress above
-    require(BouncerUtils.signerOfMessageData(address(this)) == _origAddress);
-
-    // the sender has signed the calldata that this contract received, so we're good to go
     _deploy(_origAddress);
   }
 
@@ -75,17 +58,18 @@ contract CounterfactualIdentityManager is ProxyFactory {
     internal
   {
     bytes32 cfAddress = cfAddressOf(_origAddress);
-    // @TODO — deploy proxy
-    bytes memory data;
-    address identityAddress = createProxyImpl(identityImplementation, data);
-    // initialize proxy (replace with _data in createProxyImpl?)
-    IIdentity(identityAddress).initialize(
-      KeyUtils.idForAddress(_origAddress),
-      Types.KeyType.ECDSA,
-      PURPOSE_GOD
-    );
+    require(resolve(cfAddress) != address(0), "IDENTITY_ALREADY_DEPLOYED");
 
-    // @TODO(shrugs) - replace with ENS registry at xlnt-id
+    // construct empty bytes (any better way of doing this?)
+    bytes memory data;
+
+    // deploy proxy via factory
+    address identityAddress = createProxy(identityImplementation, data);
+
+    // initialize proxy with original address
+    IIdentity(identityAddress).initialize(_origAddress);
+
+    // @TODO(shrugs) - replace with ENS
     registry[cfAddress] = identityAddress;
 
     emit ContractCreated(cfAddress, identityAddress);

@@ -3,9 +3,7 @@ pragma solidity ^0.4.24;
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "zos-lib/contracts/migrations/Migratable.sol";
 
-import "../../util/Flags.sol";
 import "../../util/Types.sol";
-import "../../util/SelfAuthorized.sol";
 import "../../util/KeyUtils.sol";
 
 import "../../interfaces/IKeyManager.sol";
@@ -15,26 +13,10 @@ import "../../interfaces/IKeyManager.sol";
  * @dev Manages key storage.
  */
 contract KeyManagerStorage01 {
+  event PurposeAdded(bytes32 indexed keyId, Types.Purpose indexed purpose);
+  event PurposeRemoved(bytes32 indexed keyId, Types.Purpose indexed purpose);
 
-  // logical limit of 64 different purposes because bytes8 has 64 bits
-  uint8 constant public MAX_PERMISSIONS = 64;
-
-  bytes8 constant public PURPOSE_GOD        = bytes8(~0); // [...] 11111111 11111111 11111111 11111111
-  // ^ the reason for the god purpose is to make sure that, no matter how the implementation of
-  // an identity contract changes, the initial key is ALWAYS going to have the permission to do anything it
-  // wants to the identity. Intelligent clients will then immediately create a multiSend transaction from
-  // the new identity adding a newly generated key and revoking the initial god address
-
-  bytes8 constant public PURPOSE_MANAGEMENT = bytes8(1);  // [...] 00000000 00000000 00000000 00000001
-  bytes8 constant public PURPOSE_ACTION     = bytes8(2);  // [...] 00000000 00000000 00000000 00000010
-  bytes8 constant public PURPOSE_CLAIM      = bytes8(4);  // [...] 00000000 00000000 00000000 00000100
-  bytes8 constant public PURPOSE_ENCRYPTION = bytes8(8);  // [...] 00000000 00000000 00000000 00001000
-  // ...
-
-  /**
-   * @dev maps from (keyId, purpose) => hasPurpose
-   */
-  mapping(bytes32 => mapping(bytes8 => bool)) internal hasPurpose;
+  mapping (uint256 => KeyRoles.Role) internal roles;
 
   /**
    * @dev array of keys for enumeration
@@ -52,83 +34,167 @@ contract KeyManagerStorage01 {
  * @title KeyManager01
  * @dev Implements key management logic, storage, and enumeration.
  */
-contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyManagerStorage01, SelfAuthorized {
+contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyManagerStorage01 {
+  using KeyRoles for KeyRoles.Role;
   using SafeMath for uint256;
-  using Flags for bytes8;
 
+  /**
+   * @dev initializes the contract, adding a single key with specific purposes
+   * @param _keyId the id of the key
+   * @param _keyType the type of the key
+   * @param _purposes the purposes of the key
+   */
   function initialize(
     bytes32 _keyId,
     Types.KeyType _keyType,
     bytes8 _purposes
   )
     public
-    isInitializer("KeyManager", "01")
+    isInitializer("KeyManager", "0")
   {
     _addKey(_keyId, _keyType, _purposes);
   }
 
+  /**
+   * @dev return information about a key, namely its keyType
+   * @param _keyId the id of the key
+   */
   function getKey(
     bytes32 _keyId
   )
-    public
+    external
     view
-    returns(
+    returns (
       bytes32 keyId,
-      uint256 keyType,
-      bytes8 purposes
+      Types.KeyType keyType
     )
   {
     Types.Key storage key = _getKeyById(_keyId);
 
     return (
       key.id,
-      uint256(key.keyType),
-      key.purposes
+      uint256(key.keyType)
     );
   }
 
+  /**
+   * @dev query the permission of a key for an identity
+   * @param _keyId the id of the key
+   * @param _purpose the purpose in question
+   */
   function keyHasPurpose(
     bytes32 _keyId,
-    bytes8 _purpose
+    Types.Purpose _purpose
   )
     public
     view
-    returns(bool)
+    returns (
+      bool
+    )
   {
-    Types.Key storage key = _getKeyById(_keyId);
-    return key.purposes.hasFlag(_purpose);
+    return _hasPurpose(_keyId, _purpose);
+  }
+
+  function totalKeys()
+    external
+    view
+    returns (
+      bool keyCount
+    )
+  {
+    return keys.length;
+  }
+
+  function keyByIndex(
+    uint256 _index
+  )
+    external
+    view
+    returns (
+      bytes32 keyId
+    )
+  {
+    return keys[_index].id;
   }
 
   // WRITE
 
+  /**
+   *
+   */
   function addKey(
     bytes32 _keyId,
     Types.KeyType _keyType,
-    bytes8 _purposes
+    Types.Purpose[] _purposes
   )
     public
-    authorized
     returns (
       bool success
     )
   {
-
-    _addKey(_keyId, _keyType, _purposes);
-    return true;
+    return _addKey(_keyId, _keyType, _purposes);
   }
 
   function removeKey(
     bytes32 _keyId
   )
-    public
-    authorized
-    returns (bool)
+    external
+    returns (
+      bool success
+    )
   {
-    _removeKey(_keyId);
-    return true;
+    return _removeKey(_keyId);
   }
 
   // INTERNAL
+
+  function _hasPurpose(bytes32 _keyId, Types.Purpose _purpose)
+    internal
+    view
+    returns (bool)
+  {
+    return roles[uint256(_purpose)].has(_keyId);
+  }
+
+  /**
+   * @dev add a role to an address
+   * @param _keyId address
+   * @param _purpose the purpose
+   */
+  function addPurpose(bytes32 _keyId, Types.Purpose _purpose)
+    internal
+  {
+    roles[uint256(_purpose)].add(_keyId);
+    emit PurposeAdded(_keyId, _purpose);
+  }
+
+  /**
+   * @dev remove a role from an address
+   * @param _keyId address
+   * @param _purpose the purpose
+   */
+  function _removePurpose(bytes32 _keyId, Types.Purpose _purpose)
+    internal
+  {
+    roles[uint256(_purpose)].remove(_keyId);
+    emit PurposeRemoved(_keyId, _purpose);
+  }
+
+  function _addPurposes(bytes32 _keyId, Types.Purpose[] _purposes)
+    internal
+  {
+    for (uint256 i = 0; i < _purposes.length; i++) {
+      _addPurpose(_keyId, _purposes[i]);
+    }
+  }
+
+  function _removePurposes(bytes32 _keyId, Types.Purpose[] _purposes)
+    internal
+  {
+    for (uint256 i = 0; i < _purposes.length; i++) {
+      _removePurpose(_keyId, _purposes[i]);
+    }
+  }
 
   function _getKeyById(
     bytes32 _keyId
@@ -143,25 +209,23 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
   function _addKey(
     bytes32 _keyId,
     Types.KeyType _keyType,
-    bytes8 _purposes
+    Types.Purpose[] _purposes
   )
     internal
     returns (bool)
   {
-
     // update this.keys
     Types.Key memory key = Types.Key({
       id: _keyId,
-      keyType: _keyType,
-      purposes: _purposes
+      keyType: _keyType
     });
     keys.push(key);
 
-    // update this.keyIndex
+    // update keyIndex
     keyIndex[_keyId] = keys.length - 1;
 
-    // update this.hasPurpose
-    _addKeyPurposes(_keyId, _purposes);
+    // update purposes
+    _addPurposes(_keyId, _purposes);
 
     return true;
   }
@@ -172,7 +236,6 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
     internal
     returns (bool)
   {
-
     // To prevent a gap in the array, we store the last token in the index of the token to delete,
     // and then delete the last slot.
     uint256 currIndex = keyIndex[_keyId];
@@ -196,35 +259,7 @@ contract KeyManager01 is Migratable, IKeyManager, IKeyManagerEnumerable, KeyMana
     keyIndex[lastKey.id] = currIndex;
     // ^ update keyIndex for the last key to be currIndex
 
-    _removeKeyPurposes(_keyId);
-
-    return true;
-  }
-
-  function _addKeyPurposes(
-    bytes32 _keyId,
-    bytes8 _purposes
-  )
-    internal
-    returns (bool)
-  {
-    for (uint8 i = 0; i < MAX_PERMISSIONS; i++) {
-      bytes8 flag = bytes8(1) << i;
-      hasPurpose[_keyId][flag] = _purposes.hasFlag(flag);
-    }
-    return true;
-  }
-
-  function _removeKeyPurposes(
-    bytes32 _keyId
-  )
-    internal
-    returns (bool)
-  {
-    for (uint8 i = 0; i < MAX_PERMISSIONS; i++) {
-      bytes8 flag = bytes8(1) << i;
-      delete hasPurpose[_keyId][flag];
-    }
+    _removePurposes(_keyId);
 
     return true;
   }

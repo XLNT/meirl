@@ -10,14 +10,14 @@ pragma solidity ^0.4.24;
 contract ProxyFactory {
   event ProxyDeployed(address _proxyAddress, address _targetAddress);
 
-  // function createProxy(address _target, bytes _data)
-  //   public
-  //   returns (address)
-  // {
-  //   address proxyContract = createProxyImpl(_target, _data);
-  //   emit ProxyDeployed(proxyContract, _target);
-  //   return proxyContract;
-  // }
+  function createProxy(address _target, bytes _data)
+    internal
+    returns (address)
+  {
+    address proxyContract = createProxyImpl(_target, _data);
+    emit ProxyDeployed(proxyContract, _target);
+    return proxyContract;
+  }
 
   function createProxyImpl(address _target, bytes _data)
     internal

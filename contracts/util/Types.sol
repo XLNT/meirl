@@ -2,16 +2,18 @@ pragma solidity 0.4.24;
 
 
 contract Types {
-  enum Operation {
-    INVALID,
-    CALL,
-    DELEGATECALL,
-    CREATE
-  }
-
   enum KeyType {
     INVALID,
     ECDSA
+  }
+
+  enum Purpose {
+    INVALID,
+    MANAGEMENT, // add & subtract authorized keys
+    TRANSACTION,  // send transactions via Identity
+    CLAIM,  // publish claims on behalf of the Identity
+    ENCRYPTION,  // encrypt data on behalf of the Identity
+    OFF_CHAIN_AUTHORIZATION  // access off-chain resources on behalf of the Identity
   }
 
   struct Key {
@@ -19,7 +21,5 @@ contract Types {
     bytes32 id;
     // the type of key used
     KeyType keyType;
-    // the purposes of the key
-    bytes8 purposes;
   }
 }
