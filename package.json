@@ -4,7 +4,7 @@
   "description": "Counterfactual Self-Sovereign Identity on ZeppelinOS with Bouncer",
   "main": "index.js",
   "scripts": {
-    "test": "run-with-testrpc 'truffle test'",
+    "test": "run-with-testrpc -l 8000000 -d 'truffle test'",
     "ganache": "ganache-cli --deterministic -l 8000000",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"

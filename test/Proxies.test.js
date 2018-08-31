@@ -1,5 +1,5 @@
-const pify = require("pify");
-const peth = pify(web3.eth);
+const { proxyFor } = require("./util/proxies");
+const { deployContract } = require("./util/deploy");
 
 const AdminUpgradeabilityProxy = artifacts.require(
   "AdminUpgradeabilityProxyMock"
@@ -11,18 +11,6 @@ require("chai")
   .should();
 
 const GREETING = "Hello, buidler!";
-const proxyFor = target =>
-  `0x603160008181600b9039f3600080808080368092803773${target.replace(
-    "0x",
-    ""
-  )}5af43d828181803e808314602f57f35bfd`;
-
-const deployContract = async (data, from) => {
-  const res = await peth.sendTransaction({ from, data });
-  const receipt = await peth.getTransactionReceipt(res);
-
-  return receipt.contractAddress;
-};
 
 const getProxyFromChain = async proxyFactories => {
   let prevAddr;
@@ -49,7 +37,7 @@ contract("Identity", ([_, admin, anyone]) => {
 
   it("should proxy -> impl", async function() {
     const finalAddress = await getProxyFromChain([
-      async addr => deployContract(proxyFor(addr), admin),
+      async addr => deployContract(proxyFor(addr), { from: admin }),
       () => this.greeter.address
     ]);
 
@@ -58,7 +46,7 @@ contract("Identity", ([_, admin, anyone]) => {
 
   it("should be able to proxy -> admin -> impl", async function() {
     const finalAddress = await getProxyFromChain([
-      async addr => deployContract(proxyFor(addr), admin),
+      async addr => deployContract(proxyFor(addr), { from: admin }),
       async addr =>
         (await AdminUpgradeabilityProxy.new(addr, { from: admin })).address,
       () => this.greeter.address
@@ -71,7 +59,7 @@ contract("Identity", ([_, admin, anyone]) => {
     const finalAddress = await getProxyFromChain([
       async addr =>
         (await AdminUpgradeabilityProxy.new(addr, { from: admin })).address,
-      async addr => deployContract(proxyFor(addr), admin),
+      async addr => deployContract(proxyFor(addr), { from: admin }),
       () => this.greeter.address
     ]);
 
@@ -80,8 +68,8 @@ contract("Identity", ([_, admin, anyone]) => {
 
   it("should be able to proxy -> proxy -> impl", async function() {
     const finalAddress = await getProxyFromChain([
-      async addr => deployContract(proxyFor(addr), admin),
-      async addr => deployContract(proxyFor(addr), admin),
+      async addr => deployContract(proxyFor(addr), { from: admin }),
+      async addr => deployContract(proxyFor(addr), { from: admin }),
       () => this.greeter.address
     ]);
 
@@ -91,11 +79,11 @@ contract("Identity", ([_, admin, anyone]) => {
   // this test is very confusing.
   it("should be able to proxy hella times", async function() {
     const finalAddress = await getProxyFromChain([
-      async addr => deployContract(proxyFor(addr), admin),
+      async addr => deployContract(proxyFor(addr), { from: admin }),
       async addr =>
         (await AdminUpgradeabilityProxy.new(addr, { from: admin })).address,
-      async addr => deployContract(proxyFor(addr), admin),
-      async addr => deployContract(proxyFor(addr), admin),
+      async addr => deployContract(proxyFor(addr), { from: admin }),
+      async addr => deployContract(proxyFor(addr), { from: admin }),
       () => this.greeter.address
     ]);
 
