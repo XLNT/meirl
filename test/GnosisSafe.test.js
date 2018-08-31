@@ -22,7 +22,7 @@ contract("GnosisSafe", function([
     });
 
     it("works", async function() {
-      (await this.safe.NAME()).should.equal("Module Manager"); // ??? Gnosis Safe ???
+      (await this.safe.NAME()).should.equal("Gnosis Safe"); // ??? Gnosis Safe ???
       (await this.safe.VERSION()).should.equal("0.0.1");
     });
   });
@@ -39,7 +39,7 @@ contract("GnosisSafe", function([
     });
 
     it("works", async function() {
-      (await this.safe.NAME()).should.equal("Module Manager"); // ??? Gnosis Safe ???
+      (await this.safe.NAME()).should.equal("Gnosis Safe"); // ??? Gnosis Safe ???
       (await this.safe.VERSION()).should.equal("0.0.1");
     });
   });
