@@ -84,6 +84,6 @@ contract ClaimRegistry is URIFormatRegistry {
   function registerIssuerURIFormat(string _uriFormat)
     public
   {
-    registerURIFormat(keccak256(abi.encodePacked(msg.sender)), _uriFormat);
+    registerURIFormat(msg.sender, _uriFormat);
   }
 }

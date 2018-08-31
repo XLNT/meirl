@@ -4,7 +4,7 @@
   "description": "Counterfactual Self-Sovereign Identity on ZeppelinOS with Bouncer",
   "main": "index.js",
   "scripts": {
-    "test": "run-with-testrpc -l 8000000 -d 'truffle test'",
+    "test": "run-with-testrpc -i 1 -l 8000000 -d 'truffle test'",
     "ganache": "ganache-cli --deterministic -l 8000000",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
@@ -29,6 +29,7 @@
     "eslint": "^5.4.0",
     "eslint-config-prettier": "^3.0.1",
     "eslint-plugin-prettier": "^2.6.2",
+    "eth-lib": "^0.2.8",
     "ganache-cli": "^6.1.6",
     "gnosis-safe": "github:gnosis/safe-contracts#development",
     "lodash": "^4.17.10",
@@ -40,6 +41,7 @@
     "run-with-testrpc": "^0.3.0",
     "truffle": "^4.1.14",
     "web3": "^1.0.0-beta.35",
+    "web3-utils": "^1.0.0-beta.36",
     "zos-lib": "^1.4.1"
   }
 }
