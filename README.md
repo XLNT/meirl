@@ -9,7 +9,6 @@ This means it:
 + has free instantiation costs; onboarding users is completely off-chain using counterfactual instantiation
   - simply, just generate a normal Ethereum keypair and then assume an identity contract exists
 + has guaranteed standard compliance via identity factories and proxy-of-proxy upgradability,
-  - `[user identity] -> [ZOS centralized upgradable proxy] -> [Gnosis Safe Implementation]`
 + delegated and gasless tx using MetaTx
   - this was using Bouncer from OpenZeppelin, but in the aim of least concerns, we'll use the safe's custom signature protocol
 + uses "verifiable claims" metaphor for SSI attestations, and
@@ -32,10 +31,10 @@ DIDs might look like
 
 [CounterfactualIdentityManager]
     v (creates)
-[IdentityProxy] -> [AdminUpgradabilityProxy] -> [Identity (Gnosis Safe +)]
-^ n users             ^ single, constant
-^ deterministic addr  ^ deterministic addr
-                      ^ upgradable via governance
+[IdentityProxy] -> [AdminUpgradabilityProxy] -> [Petrified Identity (Gnosis Safe +)]
+^ 1-per-user          ^ single, constant
+^ counterfactual addr ^ deterministic addr
+                      ^ upgradable via Aragon DAO
 ```
 
 
