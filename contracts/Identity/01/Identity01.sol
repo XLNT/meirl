@@ -10,6 +10,7 @@ import "./KeyManager01.sol";
 
 contract Identity01 is Migratable, IIdentity, KeyManager01, GnosisSafe {
 
+  // because you can't inline dynamic bytes in solidity (??)
   address[] internal fuckSolidityKeys;
   Types.Purpose[] internal fuckSolidityPurposes;
 
@@ -22,10 +23,10 @@ contract Identity01 is Migratable, IIdentity, KeyManager01, GnosisSafe {
     fuckSolidityKeys.push(_initialKey);
     bytes memory data;
     setup(
-      fuckSolidityKeys, // this key
-      1,           // threshold
-      address(0),  // nowhere
-      data         // nothing
+      fuckSolidityKeys,  // this key
+      1,                 // threshold
+      address(0),        // nowhere
+      data               // nothing
     );
 
     // then, initialize the KeyManager with a single management key

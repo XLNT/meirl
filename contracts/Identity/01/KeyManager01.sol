@@ -29,7 +29,7 @@ contract KeyManagerStorage01 {
    */
   mapping(bytes32 => uint256) internal keyIndex;
 
-  uint256 internal constant MAX_PURPOSES = 256; // why not
+  uint256 internal constant MAX_PURPOSES = 16; // why not
 }
 
 

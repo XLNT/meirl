@@ -1,7 +1,7 @@
 {
-  "name": "boku",
+  "name": "@xlnt/meirl",
   "version": "1.0.0",
-  "description": "Counterfactual Self-Sovereign Identity on ZeppelinOS with Bouncer",
+  "description": "Counterfactual Self-Sovereign Identity on ZeppelinOS with Gnosis Safe",
   "main": "index.js",
   "scripts": {
     "test": "run-with-testrpc -i 1 -l 8000000 -d 'truffle test'",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/XLNT/boku.git"
+    "url": "git+https://github.com/XLNT/meirl.git"
   },
   "keywords": [
     "ethereum"
@@ -19,9 +19,9 @@
   "author": "Matt Condon <m@cond.in> (http://mat.tc)",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/XLNT/boku/issues"
+    "url": "https://github.com/XLNT/meirl/issues"
   },
-  "homepage": "https://github.com/XLNT/boku#readme",
+  "homepage": "https://github.com/XLNT/meirl#readme",
   "devDependencies": {
     "bn.js": "^4.11.8",
     "chai": "^4.1.2",
