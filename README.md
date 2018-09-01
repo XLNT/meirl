@@ -1,8 +1,8 @@
-# boku
+# meirl
 
-> I
+> it me, irl
 
-Boku is a self-soverign identity implementation using counterfactual contract identities and Gnosis Safe.
+`meirl` is a self-soverign identity implementation using counterfactual contract identities and Gnosis Safe.
 
 This means it:
 
