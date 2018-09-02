@@ -1,11 +1,11 @@
 pragma solidity ^0.4.24;
 
 import "./ISignatureValidator.sol";
-import "openzeppelin-solidity/contracts/introspection/ERC165.sol";
+import "openzeppelin-solidity/contracts/introspection/IERC165.sol";
 import "openzeppelin-solidity/contracts/introspection/SupportsInterfaceWithLookup.sol";
 
 
-contract SignatureValidator is ERC165, SupportsInterfaceWithLookup, ISignatureValidator {
+contract SignatureValidator is IERC165, SupportsInterfaceWithLookup, ISignatureValidator {
   bytes4 internal constant InterfaceId_SignatureValidator = 0x20c13b0b;
   /**
    * 0x20c13b0b ===

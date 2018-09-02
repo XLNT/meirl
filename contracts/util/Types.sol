@@ -9,11 +9,11 @@ contract Types {
 
   enum Purpose {
     INVALID,
-    MANAGEMENT, // add & subtract authorized keys
-    TRANSACTION,  // send transactions via Identity
-    CLAIM,  // publish claims on behalf of the Identity
-    ENCRYPTION,  // encrypt data on behalf of the Identity
-    OFF_CHAIN_AUTHORIZATION  // access off-chain resources on behalf of the Identity
+    MANAGEMENT, // can add & subtract authorized keys
+
+    AUTHENTICATION, // authenticate as this identity off-chain (including JWTs)
+    CLAIM,  // publish on-chain verifiable claims on behalf of the Identity
+    ENCRYPTION  // these keys should be able to read data encrypted for this identity
   }
 
   struct Key {

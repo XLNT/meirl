@@ -29,12 +29,13 @@ DIDs might look like
 
 ```
 
-[CounterfactualIdentityManager]
-    v (creates)
-[IdentityProxy] -> [AdminUpgradabilityProxy] -> [Petrified Identity (Gnosis Safe +)]
-^ 1-per-user          ^ single, constant
-^ counterfactual addr ^ deterministic addr
-                      ^ upgradable via Aragon DAO
+[CounterfactualIdentityFactory]     [Aragon DAO]
+  | (creates)                          | (manages)
+  v                                    v                  |-> [Identity (Gnosis Safe +) v1.0]
+[Identity (Proxy)] ------------> [AdminUpgradabilityProxy] -> [Identity (Gnosis Safe +) v2.0]
+  ^ 1-per-user                     ^ single, constant     |-> [Identity (Gnosis Safe +) v3.0]
+  ^ counterfactual addr            ^ deterministic addr
+                                   ^ upgradable
 ```
 
 
@@ -48,13 +49,19 @@ The [deterministic address process](https://github.com/ethereum/EIPs/issues/820)
 4. when we want to actually deploy the bytecode, send exactly :proxyGasCost * :originalGasPrice to :sender
 5. then submit the signed transaction to the network, consuming all of the ether in that account
 
+## Recovery
+
+1. one management key; nothing
+2. two management keys, nothing
+3. three or more management keys:
+- a simple majority of management keys can add a new management key, which is immediately in effect
+- a qualified minority of management keys can add another management key, but there's a `timeout` before it's usable
+- a simple majority of management keys is required to remove a management key, and is immediately effective
+
+So basically a simple majority of your management keys must be compromised before you lose control of your identity. You can tolerate a qualified minority of management keys being compromised for up to `timeout` time. So, if you've got three keys, you can tolerate 1 of your devices getting compromised and reject the old key within the 24/48 hours, before any new, fraudulent keys that the attacker may add become usable.
+
 ## @TODO
 
 + Replace counterfactual registry with ENS resolver
 + if the ENS registry isn't 820-deployed, use deterministic address proxy contract to implement `resolve()` for the specific chain.
-+ add management key / transaction key / owner logic
-  - we want management keys to be able to manage keys
-  - we want transaction keys to be abel to send transactions
-  - should those just be === gnosis safe owners with treshold of 1? probably, for simplicity
-+ should keymanager be a module?
-  - probably, but need to figure out how to do so
++ use blocknum-chained events

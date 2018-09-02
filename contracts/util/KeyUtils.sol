@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 
 library KeyUtils {
-  function idForAddress(address _address)
+  function keyId(address _address)
     internal
     pure
     returns (bytes32)

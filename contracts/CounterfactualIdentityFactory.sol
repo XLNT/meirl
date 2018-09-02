@@ -1,7 +1,5 @@
 pragma solidity ^0.4.24;
 
-import "./put-this-in-openzeppelin/BouncerUtils.sol";
-
 import "./util/Types.sol";
 import "./util/KeyUtils.sol";
 
@@ -10,12 +8,12 @@ import "./ProxyFactory.sol";
 
 
 /**
- * @title CounterfactualIdentityManager
- * @dev The CounterfactualIdentityManager counterfactually manages identities.
+ * @title CounterfactualIdentityFactory
+ * @dev The CounterfactualIdentityFactory counterfactually manages identities.
  * (but actually) what that means is that any keypair can be assumed to have a future
  * (but not yet deployed) identity contract available.
  */
-contract CounterfactualIdentityManager is ProxyFactory {
+contract CounterfactualIdentityFactory is ProxyFactory {
   event ContractCreated(bytes32 indexed cfAddress, address deployedAddress);
 
   /**

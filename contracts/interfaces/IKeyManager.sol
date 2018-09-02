@@ -32,7 +32,7 @@ interface IKeyManager {
   function addKey(
     bytes32 _keyId,
     Types.KeyType _keyType,
-    uint256[] _purposes  // @TODO - why can't this be Types.Purpose[]?
+    Types.Purpose _purpose
   )
     external
     returns (
