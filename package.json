@@ -34,7 +34,7 @@
     "gnosis-safe": "github:gnosis/safe-contracts#development",
     "lodash": "^4.17.10",
     "number-to-bn": "^1.7.0",
-    "openzeppelin-solidity": "https://github.com/openzeppelin/openzeppelin-solidity#master",
+    "openzeppelin-solidity": "https://github.com/openzeppelin/openzeppelin-solidity#964bc4044a58faf9fecc041d1bdd5e07de3a6c4f",
     "pify": "^3.0.0",
     "prettier": "^1.14.2",
     "rlp": "^2.1.0",
