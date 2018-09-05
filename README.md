@@ -2,6 +2,8 @@
 
 > it me, irl
 
+⚠ VERY Work In Progress! As in, in compiles but there are no tests and mostly this is just for experimentation don't download this and expect to use it.
+
 `meirl` is a self-soverign identity implementation using counterfactual contract identities and Gnosis Safe.
 
 This means it:
